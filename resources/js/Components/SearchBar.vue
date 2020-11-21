@@ -43,7 +43,7 @@ export default {
     watch:{
         query:debounce(function(){  
             this.$emit('refreshQuery',this.query);
-        },500)
+        },350)
     }
 }
 </script>

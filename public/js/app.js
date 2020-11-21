@@ -2071,7 +2071,7 @@ __webpack_require__.r(__webpack_exports__);
   watch: {
     query: Object(debounce__WEBPACK_IMPORTED_MODULE_0__["debounce"])(function () {
       this.$emit('refreshQuery', this.query);
-    }, 500)
+    }, 350)
   }
 });
 
@@ -4400,6 +4400,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Layouts_AppLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @/Layouts/AppLayout */ "./resources/js/Layouts/AppLayout.vue");
 /* harmony import */ var _Components_Searchbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Components/Searchbar */ "./resources/js/Components/Searchbar.vue");
 /* harmony import */ var _Components_Pagination__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @/Components/Pagination */ "./resources/js/Components/Pagination.vue");
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -4491,12 +4511,30 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
+  props: {
+    collection: Object
+  },
   data: function data() {
     return {
-      query: this.queryString,
-      pageSize: this.perPage,
-      currentPage: this.current,
-      paginationLinks: this.links
+      items: this.collection.data,
+      query: this.collection.queryString,
+      paginationLinks: this.collection.links,
+      pageSize: this.collection.links.perPage,
+      current: 1,
+      params: {
+        query: {
+          required: true,
+          remove: false
+        },
+        size: {
+          required: false,
+          remove: false
+        },
+        page: {
+          required: false,
+          remove: false
+        }
+      }
     };
   },
   components: {
@@ -4504,47 +4542,58 @@ __webpack_require__.r(__webpack_exports__);
     'material-input': _Components_Searchbar__WEBPACK_IMPORTED_MODULE_1__["default"],
     'pagination-layout': _Components_Pagination__WEBPACK_IMPORTED_MODULE_2__["default"]
   },
-  props: {
-    items: Array,
-    queryString: String,
-    perPage: String,
-    current: Number,
-    links: Object
-  },
   methods: {
-    reloadQueryString: function reloadQueryString(val) {
+    refreshQuery: function refreshQuery(val) {
       this.query = val;
+    },
+    requireParam: function requireParam(param) {
+      this.params[param].required = true;
+      this.params[param].remove = false;
+    },
+    removeParam: function removeParam(param) {
+      this.params[param].required = false;
+      this.params[param].remove = true;
+    },
+    requestParams: function requestParams(params) {
+      var options = {
+        size: this.pageSize,
+        query: this.query,
+        page: this.current
+      };
+      Object.entries(this.params).forEach(function (entry) {
+        var _entry = _slicedToArray(entry, 2),
+            key = _entry[0],
+            value = _entry[1];
+
+        if (value.required == true && (key in options && options[key] === null || options[key] == '')) {
+          delete options[key];
+        }
+
+        if (value.remove == true) {
+          delete options[key];
+        }
+      });
+      return options;
+    }
+  },
+  computed: {
+    hasQuery: function hasQuery() {
+      return this.query !== null && this.query.lenght > 0;
     }
   },
   watch: {
-    'items.per_page': function itemsPer_page(newVal) {
-      console.log(newVal);
-    },
     query: function query(newVal) {
-      this.$inertia.replace(route('items.index'), {
-        data: {
-          query: newVal
-        }
-      });
+      this.removeParam('size');
+      this.removeParam('page');
+      this.$inertia.get('/items', this.requestParams());
     },
     pageSize: function pageSize(newVal) {
-      var obj = {
-        data: {
-          perPage: this.pageSize,
-          page: this.currentPage
-        }
-      };
-
-      if (this.query !== null && this.query != '') {
-        obj.data.query = this.query;
-      }
-
-      this.$inertia.replace(route('items.index'), obj);
+      this.requireParam('size');
+      this.requireParam('page');
+      this.$inertia.get('/items', this.requestParams());
     }
   },
-  mounted: function mounted() {
-    console.log(this.paginationLinks);
-  }
+  mounted: function mounted() {}
 });
 
 /***/ }),
@@ -50229,13 +50278,7 @@ var render = function() {
                   staticClass:
                     "font-semibold text-xl text-gray-800 leading-tight"
                 },
-                [
-                  _vm._v(
-                    "\n            Todo-list " +
-                      _vm._s(_vm.paginationLinks) +
-                      "\n        "
-                  )
-                ]
+                [_vm._v("\n            Todo-list\n        ")]
               )
             ]
           },
@@ -50262,8 +50305,8 @@ var render = function() {
                   { staticClass: "w-4/6" },
                   [
                     _c("material-input", {
-                      attrs: { searchString: _vm.query },
-                      on: { refreshQuery: _vm.reloadQueryString }
+                      attrs: { searchString: this.query },
+                      on: { refreshQuery: _vm.refreshQuery }
                     })
                   ],
                   1
@@ -50339,7 +50382,7 @@ var render = function() {
                           },
                           [
                             _vm._v(
-                              "\n                        Name\n                    "
+                              "\n                            #\n                        "
                             )
                           ]
                         ),
@@ -50352,7 +50395,7 @@ var render = function() {
                           },
                           [
                             _vm._v(
-                              "\n                        Description\n                    "
+                              "\n                            Name\n                        "
                             )
                           ]
                         ),
@@ -50365,7 +50408,20 @@ var render = function() {
                           },
                           [
                             _vm._v(
-                              "\n                        Status\n                    "
+                              "\n                            Description\n                        "
+                            )
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "th",
+                          {
+                            staticClass:
+                              "px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                          },
+                          [
+                            _vm._v(
+                              "\n                            Status\n                        "
                             )
                           ]
                         ),
@@ -50391,9 +50447,9 @@ var render = function() {
                                 },
                                 [
                                   _vm._v(
-                                    "\n                            " +
-                                      _vm._s(item.name) +
-                                      "\n                        "
+                                    "\n                                " +
+                                      _vm._s(item.id) +
+                                      "\n                            "
                                   )
                                 ]
                               )
@@ -50412,9 +50468,30 @@ var render = function() {
                                 },
                                 [
                                   _vm._v(
-                                    "\n                            " +
+                                    "\n                                " +
+                                      _vm._s(item.name) +
+                                      "\n                            "
+                                  )
+                                ]
+                              )
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c(
+                            "td",
+                            { staticClass: "px-6 py-4 whitespace-no-wrap" },
+                            [
+                              _c(
+                                "div",
+                                {
+                                  staticClass:
+                                    "text-sm leading-5 font-medium text-gray-900"
+                                },
+                                [
+                                  _vm._v(
+                                    "\n                                " +
                                       _vm._s(item.description) +
-                                      "\n                        "
+                                      "\n                            "
                                   )
                                 ]
                               )
@@ -50433,7 +50510,7 @@ var render = function() {
                                 },
                                 [
                                   _vm._v(
-                                    "\n                        Active\n                        "
+                                    "\n                            Active\n                            "
                                   )
                                 ]
                               )
@@ -50448,7 +50525,7 @@ var render = function() {
                             },
                             [
                               _vm._v(
-                                "\n                        Admin\n                    "
+                                "\n                            Admin\n                        "
                               )
                             ]
                           ),
@@ -50481,11 +50558,8 @@ var render = function() {
             )
           ]
         )
-      ]),
-      _vm._v(" "),
-      _c("pagination-layout", { attrs: { links: _vm.paginationLinks } })
-    ],
-    1
+      ])
+    ]
   )
 }
 var staticRenderFns = []
@@ -65177,8 +65251,8 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\wamp64\www\development\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\wamp64\www\development\resources\css\app.css */"./resources/css/app.css");
+__webpack_require__(/*! C:\wamp64\www\dev\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! C:\wamp64\www\dev\resources\css\app.css */"./resources/css/app.css");
 
 
 /***/ })

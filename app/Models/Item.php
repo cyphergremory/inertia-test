@@ -14,4 +14,10 @@ class Item extends Model
     protected $fillable = [
        'name','date','description'
     ];
+
+    public function scopeFilter(){
+        $items = Item::when($query,function($q) use ($query){
+            $q->where('name','like',"%$query%");
+        })->paginate($request->get('size') ?? 10);
+    }
 }

@@ -17,24 +17,10 @@ class ItemController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {    $query = $request->get('query');
-    
-            $items = Item::when($query,function($q) use ($query){
-                $q->where('name','like',"%$query%");
-            })->paginate($request->get('perPage'));
-        return Inertia::render('Todo/Index',[
-            'links' => [
-                'current' => $items->currentPage(),
-                'from'=> $items->firstItem(),
-                'to'=>$items->lastItem(),
-                'total' => $items->total(),
-                'pages' => $items->lastPage(),
+    { 
 
-            ],
-            'items' => $items->items(),
-            'queryString' => $request->get('query'),
-            'perPage' =>(string) $request->get('perPage',10),
-            
+        return Inertia::render('Todo/Index',[
+           'collection'=> Item::filter()
         ]);
         
     }
@@ -44,9 +30,12 @@ class ItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         //
+        Item::create($request->validated());
+
+        return Inertia::render('Todo/Index');
     }
 
     /**
@@ -94,9 +83,11 @@ class ItemController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Item $item)
     {
-        //
+        $item->update(request->validated());
+
+        return Inertia::render('Todo/Index');
     }
 
     /**
