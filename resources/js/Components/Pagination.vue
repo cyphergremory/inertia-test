@@ -1,74 +1,54 @@
 
 <template>
-  <div class="mt-6 -mb-1 flex flex-wrap">
-    <template>
-       <div>
-      <nav class="relative z-0 inline-flex shadow-sm -space-x-px" aria-label="Pagination">
-        <a  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            @click.prevent="changePage(current -1)"
-            v-if="this.canReducePage"
-        >
-          <span class="sr-only">Previous</span>
-          <!-- Heroicon name: chevron-left -->
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-          </svg>
-        </a>
+  <div class="flex flex-wrap align-center justify-center py-2 border-t border-gray-100">
+   
+    <div>
+      <nav class="relative z-0 inline-flex shadow-sm -space-x-px" aria-label="Pagination">        
         <a class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" 
-        v-for="(link,key) in links.pages" :key="key"
-            @click.prevent="changePage(link)"
+          v-for="(link,key) in links" :key="key" :class="{'active':link.active == true}"          
+          @click.prevent="togglePage(link.label)"
         >
-          {{link}}
-        </a>
-        <a  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            v-if="canIncreasePage"
-            @click.prevent="changePage(current + 1)"
-        >
-          <span class="sr-only">Next</span>
-          <!-- Heroicon name: chevron-right -->
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-          </svg>
-        </a>
+          {{link.label}}
+        </a>       
       </nav>
     </div>
-    </template>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    links: Object,
+    links: Array,
+    current:{
+      type:Number,
+      default:1
+    }
   },
-  computed:{
-        current:function(){ 
-          return this.links.current_page;
-        },
-        last:function(){return this.links.last_page;},
-        total:function(){this.links.total;},
-        from:function(){this.links.from;},
-        to:function(){this.links.to;},
-        canIncreasePage:function(){
-          return this.current < this.last;
-        },
-        canReducePage:function(){
-          return this.current > 1;
-        }
+  data(){
+    return{
+      page: this.current
+    }
   },
-  methods:{
-      changePage:function(val){
-         this.$emit('pageChanged',val)
-      },
-      previousPage:function(){
-          let previous = this.current -1;
-          this.changePage(previous);
-      },
-      nextPage:function(){
-          let next = this.current +1;
-          this.changePage(next);
+  watch:{
+      page:function(newVal){
+        this.$emit('pageChanged',newVal);
       }
   },
+  methods:{
+      togglePage:function(val){
+          this.page = val;
+      }
+  },
+  mounted(){
+    console.log(this.links);
+  }
 }
 </script>
 
+<style scoped>
+  .active{
+    background:dodgerblue;
+    color:white;
+
+  }
+</style>

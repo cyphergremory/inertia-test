@@ -1,40 +1,37 @@
 <template>
     <app-layout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Todo-list
-            </h2>
+        <template #header>     
+            <div class="flex flex-row">
+                <h2 class="font-semibold text-4xl text-gray-600 leading-tight">
+                    Todo-list
+                </h2>
+                <div class="ml-auto">
+                    <jet-button type="button" @item-creation="createRow">
+                        Registrar item    
+                    </jet-button>                
+                </div>               
+            </div>
         </template>        
         <div class="py-12">
-            <div class="max-w-7x1 lg:max-w-5xl mx-auto sm:px-6 lg:px-8">
-                <div class="w-full flex flex-row bg-white alignn-center justify-center shadow-sm">
-                    <div class="w-4/6">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="flex flex-row align-center justify-center">
+                    <div class="pl-7 pt-6 text-sm text-gray-600 text-center font-semibold">
+                        Mostrando pagina {{page}} de {{count}}
+                    </div>
+                    <div class="w-3/6 ml-auto">
                         <material-input 
-                            @refreshQuery="refreshQuery"
+                            @refreshQuery="search"
+                            @size-changed="changeSize"
                             :searchString="this.query"
                         ></material-input>
-                    </div>
-                    <div class="flex-1">                         
-                        <div class="relative p-2">
-                            <select id="country" 
-                                class="mt-1 border-l border-gray-200 block w-full py-2 px-3 bg-white focus:outline-none focus:border-gray-500 sm:text-sm"
-                                v-model="pageSize"
-                            >
-                                <option>5</option>
-                                <option>10</option>
-                                <option>25</option>
-                                <option>50</option>
-                                <option>100</option>
-                            </select>
-                        </div>                        
-                    </div>
-                    </div>       
-                 
-                <div class="bg-white  mt-5 overflow-hidden shadow-sm sm:rounded-md">                                              
+                    </div>                                                                                                                 
+                </div>         
+                <div class="bg-white rounded-md mt-5 overflow-hidden overflow-x-scroll sm:rounded-md">  
+                                                                   
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-4 bg-gray-50 text-left text-md leading-4 font-bold text-gray-500 uppercase tracking-wider">
                                 #
                             </th>
                             <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
@@ -62,7 +59,7 @@
                                 </div>                            
                             </td>
                             <td class="px-6 py-4 whitespace-no-wrap">                    
-                                <div class="text-sm leading-5 font-medium text-gray-900">
+                                <div class="text-sm leading-5 font-medium text-gray-900 truncate relative max-w-md">
                                     {{item.description}}
                                 </div>                            
                             </td>
@@ -71,9 +68,7 @@
                                 Active
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
-                                Admin
-                            </td>
+                           
                             <td class="px-6 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium">
                                 <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
                             </td>
@@ -81,15 +76,14 @@
 
                             <!-- More rows...-->
                         </tbody>
-                    </table>                    
+                    </table>                     
+                    <pagination-layout
+                        v-bind:links="paginationLinks"
+                        @pageChanged="(val) =>{this.page =val;}"
+                    ></pagination-layout>                                       
                 </div>
             </div>
-        </div>
-        <!--
-        <pagination-layout
-            v-bind:links="paginationLinks"
-        ></pagination-layout>
-        -->
+        </div>                
     </app-layout>
 </template>
 
@@ -97,90 +91,54 @@
     import AppLayout from '@/Layouts/AppLayout'
     import SearchBar from '@/Components/Searchbar'
     import Pagination from '@/Components/Pagination'
+    import Button from '@/Components/RegistrationButton'
 
     export default {
+        components:{
+            AppLayout,
+            'material-input':SearchBar,
+            'pagination-layout':Pagination,
+            'jet-button':Button
+        },
          props:{
-            collection:Object,           
+            dataset:Object,           
         },
         data(){
             return{
-                items:this.collection.data,
-                query:this.collection.queryString,            
-                paginationLinks:this.collection.links,
-                pageSize:this.collection.links.perPage,
-                current:1,
-                params:{
-                    query:{
-                        required:true,
-                        remove:false
-                    },
-                    size:{
-                        required:false,
-                        remove:false
-                    },
-                    page:{
-                        required:false,
-                        remove:false
-                    }
-                }
+                items:this.dataset.data,
+                query:this.dataset.queryString,            
+                paginationLinks:this.dataset.links,         
+                pageSize:this.dataset.perPage,
+                page:1,
+                count:7
             }
-        },
-        components: {
-            AppLayout,
-            'material-input':SearchBar,
-            'pagination-layout':Pagination
-        },       
+        },     
         methods:{
-            refreshQuery:function(val){
+            search:function(val){
                 this.query = val;
             },
-            requireParam:function(param){
-               this.params[param].required = true;
-               this.params[param].remove = false;        
+            createRow:function(){
+                alert('asdasd');
             },
-            removeParam:function(param){
-               this.params[param].required = false;
-               this.params[param].remove = true; 
-            },
-            requestParams:function(params){
-                let options ={                   
-                        size:this.pageSize,
-                        query:this.query,
-                        page:this.current                               
-                };
-
-                Object.entries(this.params).forEach(entry => {
-                    const [key, value] = entry;
-                    if (value.required == true && (key in options && options[key] === null || options[key] =='')){
-                            delete options[key];
-                    }
-                    if(value.remove == true){
-                        delete options[key];
-                    }                  
-                });  
-                
-                return options;
+            changeSize:function(val){                
+                this.pageSize = val;               
             }
-        },   
-        computed:{
-            hasQuery:function(){
-                return this.query !== null && this.query.lenght > 0;
-            }
+           
         },
         watch:{           
-            query:function(newVal){          
-                this.removeParam('size');
-                this.removeParam('page');
-                this.$inertia.get('/items',this.requestParams());
+            query:function(newVal){       
+                
+               this.$inertia.get('/items',{                
+                    query:newVal,
+                    size:this.pageSize
+               });
             },
             pageSize:function(newVal){   
-                this.requireParam('size');
-                this.requireParam('page');
-                this.$inertia.get('/items',this.requestParams());
+               this.$inertia.get('/items',{                
+                    query:this.query,
+                    size:newVal
+               });
             }
-        },       
-        mounted(){
-          
-        }
+        }        
     }
 </script>

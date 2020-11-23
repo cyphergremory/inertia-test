@@ -26,13 +26,8 @@ class CustomPaginator extends LengthAwarePaginator{
         return [
             'data' => $this->items->toArray(),            
             'queryString' => request()->get('query',''),
-            'links'=>[
-                'pages' => $this->lastPage(),
-                'from' => $this->firstItem(),
-                'to'=>$this->lastItem(),
-                'count'=> $this->total(),
-                'perPage'=> $this->perPage(),
-            ]
+            'links'=>$this->links(),
+            'perPage'=>request()->get('size',$this->perPage())
         ];
     }
 

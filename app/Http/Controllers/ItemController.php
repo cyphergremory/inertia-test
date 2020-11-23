@@ -10,7 +10,7 @@ class ItemController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum');
-    }
+    }   
     /**
      * Display a listing of the resource.
      *
@@ -18,11 +18,9 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     { 
-
         return Inertia::render('Todo/Index',[
-           'collection'=> Item::filter()
-        ]);
-        
+           'dataset'=> Item::filter($request)
+        ]);        
     }
 
     /**
@@ -85,9 +83,7 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        $item->update(request->validated());
-
-        return Inertia::render('Todo/Index');
+        
     }
 
     /**

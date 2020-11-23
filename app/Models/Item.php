@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\Request;
 
 class Item extends Model
 {
@@ -15,9 +16,9 @@ class Item extends Model
        'name','date','description'
     ];
 
-    public function scopeFilter(){
-        $items = Item::when($query,function($q) use ($query){
-            $q->where('name','like',"%$query%");
-        })->paginate($request->get('size') ?? 10);
+    public function scopeFilter($query,Request $request){
+        return $query->when($request->filled('query'),
+            fn($q) => $q->where('name','like',"%{$request->get('query')}%")
+        )->paginate($request->get('size',10))->toArray();
     }
 }
